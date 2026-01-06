@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Rapor</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Outfit"', 'sans-serif'] },
+                    colors: {
+                        primary: '#6366f1', // Indigo
+                        secondary: '#a855f7', // Purple
+                        glass: 'rgba(255, 255, 255, 0.7)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Background Gradasi Animasi */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mode Switcher */
+        .mode-active { background: #1e293b; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .mode-inactive { color: #64748b; background: transparent; }
+        .mode-inactive:hover { background: rgba(255,255,255,0.5); color: #475569; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased overflow-hidden flex flex-col md:flex-row h-screen">
+
+    <aside class="hidden md:flex flex-col w-72 glass-panel border-r border-white/30 z-20 shadow-2xl h-full">
+        <div class="p-8 border-b border-slate-200/50">
+            <div class="flex items-center gap-3 text-primary">
+                <i class="fa-solid fa-graduation-cap text-3xl drop-shadow-sm"></i>
+                <div>
+                    <h1 class="font-bold text-2xl tracking-tight text-slate-900">E-Rapor</h1>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Admin Dashboard</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div class="bg-gradient-to-br from-white to-slate-50 p-4 rounded-2xl border border-white shadow-sm flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                    RA
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-[10px] text-primary font-bold uppercase mb-0.5">Logged in as</p>
+                    <h3 class="text-xs font-bold text-slate-800 truncate" title="Meyvke Siwabessy, S.Tr.Par">Meyvke Siwabessy, S.Tr.Par</h3>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <button class="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard Utama
+                </button>
+            </nav>
+        </div>
+
+        <div class="mt-auto p-6 border-t border-slate-200/50 text-center">
+            <a href="https://alexbahy-tech.github.io/smartkurikulumsmkn1mt/" class="flex items-center justify-center gap-2 w-full py-3 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition-all mb-4 border border-red-100 group">
+                <i class="fa-solid fa-arrow-right-from-bracket group-hover:-translate-x-1 transition-transform"></i> Keluar Aplikasi
+            </a>
+            <p class="text-[10px] text-slate-500 font-medium">&copy; 2025-2028 Academic System</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative h-full overflow-hidden">
+        
+        <header class="glass-panel sticky top-0 z-30 px-6 py-4 flex flex-col gap-4 shadow-sm">
+            
+            <div class="flex justify-between items-center">
+                <div class="md:hidden flex items-center gap-2 text-slate-800">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i> <span class="font-bold">E-Rapor</span>
+                </div>
+                
+                <div class="flex bg-slate-200/50 p-1.5 rounded-full shadow-inner mx-auto md:mx-0">
+                    <button onclick="setMode('RAPOR')" id="modeRapor" class="mode-active px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all">
+                        <i class="fa-solid fa-file-invoice"></i> Mode Rapor
+                    </button>
+                    <button onclick="setMode('IDENTITAS')" id="modeIdentitas" class="mode-inactive px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all">
+                        <i class="fa-regular fa-id-card"></i> Mode Identitas
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <a href="https://alexbahy-tech.github.io/smartkurikulumsmkn1mt/" class="md:hidden w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 shadow-sm border border-red-100" title="Keluar">
+                        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                    </a>
+
+                    <button onclick="document.getElementById('modalAdd').classList.remove('hidden')" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Siswa</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="raporFilters" class="flex flex-col md:flex-row gap-3 items-center justify-between bg-white/40 p-2 rounded-2xl border border-white/50">
+                
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <div class="relative">
+                        <select id="selYear" onchange="refreshData()" class="appearance-none bg-white/80 border-none pl-4 pr-8 py-2 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-primary shadow-sm cursor-pointer">
+                            <option value="2025/2026">TP 2025/2026</option>
+                            <option value="2026/2027">TP 2026/2027</option>
+                            <option value="2027/2028">TP 2027/2028</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    </div>
+                    
+                    <div class="flex bg-slate-200/50 rounded-xl p-1">
+                        <button onclick="setSemester('ganjil')" id="btnGanjil" class="px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-white text-primary shadow-sm">Ganjil</button>
+                        <button onclick="setSemester('genap')" id="btnGenap" class="px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-500 hover:text-slate-700">Genap</button>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-auto flex items-center gap-2">
+                    <div id="ledgerInfo" class="text-[10px] font-bold text-slate-500 hidden md:block text-right leading-tight">
+                        Cek Status<br>Ledger
+                    </div>
+                    <button id="btnLedger" onclick="handleLedger()" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-300 text-slate-500 rounded-xl text-xs font-bold transition hover:bg-slate-400 shadow-sm">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+                    </button>
+                    <a id="dlLedger" href="#" target="_blank" class="hidden w-9 h-9 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-200 shadow-sm transition">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                </div>
+            </div>
+
+             <div class="relative">
+                <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="searchInput" onkeyup="filterGrid()" placeholder="Cari Nama Siswa..." class="w-full pl-10 pr-4 py-2 bg-white/60 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm backdrop-blur-sm">
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 scroll-smooth">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div id="cardStatRapor" class="glass-panel p-5 rounded-3xl relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-solid fa-book-open text-6xl"></i></div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Kelengkapan Rapor</p>
+                    <div class="flex items-end gap-2">
+                        <h2 class="text-3xl font-bold text-primary" id="countRapor">0</h2>
+                        <span class="text-sm font-medium text-slate-400 mb-1.5">/ <span class="totalSiswa">0</span> Siswa</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 mt-3 overflow-hidden">
+                        <div id="barRapor" class="bg-primary h-full w-0 transition-all duration-1000"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 text-right" id="pctRapor">0% Selesai</p>
+                </div>
+
+                <div id="cardStatIdentitas" class="glass-panel p-5 rounded-3xl relative overflow-hidden group hidden">
+                    <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition"><i class="fa-regular fa-id-card text-6xl"></i></div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Kelengkapan Identitas</p>
+                    <div class="flex items-end gap-2">
+                        <h2 class="text-3xl font-bold text-secondary" id="countIdentitas">0</h2>
+                        <span class="text-sm font-medium text-slate-400 mb-1.5">/ <span class="totalSiswa">0</span> Siswa</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 mt-3 overflow-hidden">
+                        <div id="barIdentitas" class="bg-secondary h-full w-0 transition-all duration-1000"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 text-right" id="pctIdentitas">0% Selesai</p>
+                </div>
+            </div>
+
+            <div id="loader" class="py-20 flex flex-col items-center justify-center">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-white mb-4 drop-shadow-md"></i>
+                <p class="text-white font-bold animate-pulse drop-shadow-md">Sinkronisasi Database...</p>
+            </div>
+
+            <div id="gridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 hidden pb-20">
+                </div>
+            
+            <div id="emptyState" class="hidden py-10 text-center">
+                <p class="text-slate-500 font-medium">Tidak ada data siswa ditemukan.</p>
+            </div>
+        </div>
+    </main>
+
+    <input type="file" id="fileInput" class="hidden" accept=".pdf,.xls,.xlsx">
+
+    <div id="modalAdd" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl transform scale-100 transition-all">
+            <h3 class="text-xl font-bold text-slate-800 mb-6">Tambah Siswa</h3>
+            <div class="space-y-4">
+                <input type="text" id="newNama" placeholder="Nama Lengkap" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-primary font-medium">
+                <input type="number" id="newNis" placeholder="NIS" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-primary font-medium">
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="document.getElementById('modalAdd').classList.add('hidden')" class="flex-1 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 text-xs">BATAL</button>
+                <button onclick="saveStudent()" class="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 text-xs shadow-lg">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // GANTI DENGAN URL WEB APP GOOGLE SCRIPT ANDA
+        const APP_URL = "https://script.google.com/macros/s/AKfycbwq4MiCK64jAiUipNHlTnGGiiP_eA_MG1CnOG766H-Ue2E472WLLYkYwSuCeorUHcH3/exec";
+
+        let state = {
+            mode: 'RAPOR', // 'RAPOR' or 'IDENTITAS'
+            year: '2025/2026',
+            semester: 'ganjil',
+            students: [],
+            stats: { rapor: 0, identitas: 0 }
+        };
+        let activeUpload = null;
+
+        window.onload = refreshData;
+
+        // --- MODE & FILTER HANDLING ---
+        function setMode(m) {
+            state.mode = m;
+            const btnR = document.getElementById('modeRapor');
+            const btnI = document.getElementById('modeIdentitas');
+            const filters = document.getElementById('raporFilters');
+            const cardR = document.getElementById('cardStatRapor');
+            const cardI = document.getElementById('cardStatIdentitas');
+
+            if(m === 'RAPOR') {
+                btnR.className = "mode-active px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all";
+                btnI.className = "mode-inactive px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all";
+                filters.classList.remove('hidden', 'opacity-50', 'pointer-events-none');
+                cardR.classList.remove('hidden');
+                cardI.classList.add('hidden');
+            } else {
+                btnR.className = "mode-inactive px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all";
+                btnI.className = "mode-active px-6 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all";
+                filters.classList.add('opacity-50', 'pointer-events-none'); // Disable filters visually
+                cardR.classList.add('hidden');
+                cardI.classList.remove('hidden');
+            }
+            renderGrid();
+        }
+
+        function setSemester(sem) {
+            state.semester = sem;
+            document.getElementById('btnGanjil').className = sem === 'ganjil' ? "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-white text-primary shadow-sm" : "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-500";
+            document.getElementById('btnGenap').className = sem === 'genap' ? "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition bg-white text-primary shadow-sm" : "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition text-slate-500";
+            refreshData();
+        }
+
+        // --- DATA FETCHING ---
+        async function refreshData() {
+            state.year = document.getElementById('selYear').value;
+            
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('gridContainer').classList.add('hidden');
+            
+            // Reset Stats UI
+            state.stats = { rapor: 0, identitas: 0 };
+            updateStatsUI();
+
+            try {
+                // 1. Ambil Data Siswa
+                const res = await fetch(APP_URL, {method:'POST', body:JSON.stringify({action:'read'})});
+                state.students = await res.json();
+                
+                // 2. Cek Ledger (Hanya update jika di mode rapor, tapi kita panggil saja)
+                checkLedger();
+
+                // 3. Render & Mulai Lazy Loading Status File
+                renderGrid();
+                
+                // 4. Trigger cek status file individual untuk update statistik
+                queueFileChecks();
+
+            } catch(e) { console.error(e); }
+            
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('gridContainer').classList.remove('hidden');
+        }
+
+        async function checkLedger() {
+            const btn = document.getElementById('btnLedger');
+            const info = document.getElementById('ledgerInfo');
+            const dl = document.getElementById('dlLedger');
+            
+            info.innerHTML = `Ledger<br>${state.year}<br>${state.semester.toUpperCase()}`;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cek...';
+            btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-300 text-slate-500 rounded-xl text-xs font-bold transition shadow-sm";
+            dl.classList.add('hidden');
+
+            const res = await fetch(APP_URL, {
+                method:'POST', 
+                body:JSON.stringify({action:'checkLedger', year:state.year, semester:state.semester})
+            });
+            const r = await res.json();
+
+            if(r.exists) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Ada';
+                btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-200 hover:bg-emerald-600";
+                dl.href = r.url;
+                dl.classList.remove('hidden');
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload';
+                btn.className = "flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-slate-500 border border-slate-300 rounded-xl text-xs font-bold transition hover:bg-slate-50";
+            }
+        }
+
+        function handleLedger() {
+            activeUpload = { target: 'LEDGER', year: state.year, semester: state.semester };
+            document.getElementById('fileInput').click();
+        }
+
+        // --- RENDERING ---
+        function renderGrid() {
+            const grid = document.getElementById('gridContainer');
+            grid.innerHTML = '';
+            
+            const total = state.students.length;
+            document.querySelectorAll('.totalSiswa').forEach(el => el.innerText = total);
+            
+            if(total === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('emptyState').classList.add('hidden');
+
+            state.students.forEach((s, idx) => {
+                const colors = ['from-blue-400 to-indigo-500', 'from-purple-400 to-pink-500', 'from-emerald-400 to-teal-500', 'from-orange-400 to-amber-500'];
+                const grad = colors[idx % colors.length];
+
+                const card = document.createElement('div');
+                card.className = "glass-card p-5 rounded-3xl flex flex-col relative group";
+                
+                // Konten Berubah Tergantung Mode
+                let statusHTML = '';
+                let btnHTML = '';
+                
+                if (state.mode === 'RAPOR') {
+                    // TAMPILAN RAPOR
+                    statusHTML = `
+                        <div class="flex justify-between items-center mb-3 text-xs">
+                            <span class="text-slate-500 font-bold uppercase opacity-70">${state.semester}</span>
+                            <span id="stat-rap-${idx}" class="font-bold text-slate-300 text-[10px] bg-slate-100 px-2 py-0.5 rounded-full">...</span>
+                        </div>`;
+                    btnHTML = `
+                        <button onclick="prepUpload(${idx}, 'RAPOR')" class="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-primary hover:text-white hover:border-primary transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Rapor
+                        </button>`;
+                } else {
+                    // TAMPILAN IDENTITAS
+                    statusHTML = `
+                        <div class="flex justify-between items-center mb-3 text-xs">
+                            <span class="text-slate-500 font-bold uppercase opacity-70">Biodata</span>
+                            <span id="stat-id-${idx}" class="font-bold text-slate-300 text-[10px] bg-slate-100 px-2 py-0.5 rounded-full">...</span>
+                        </div>`;
+                    btnHTML = `
+                        <button onclick="prepUpload(${idx}, 'IDENTITAS')" class="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-secondary hover:text-white hover:border-secondary transition flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-id-card"></i> Upload Identitas
+                        </button>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-4 mb-5">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-lg shadow-md">
+                            ${s.nama.charAt(0)}
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-slate-800 text-sm truncate" title="${s.nama}">${s.nama}</h4>
+                            <p class="text-[10px] text-slate-500 font-mono bg-white/50 inline-block px-1.5 py-0.5 rounded mt-0.5 border border-white">${s.nis}</p>
+                        </div>
+                        <button onclick="delStudent(${s.row})" class="ml-auto w-8 h-8 rounded-full bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-sm">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                    <div class="mt-auto">
+                        ${statusHTML}
+                        ${btnHTML}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- LAZY STATUS CHECKING ---
+        async function queueFileChecks() {
+            // Kita cek status file satu per satu secara asynchronous agar UI tidak freeze
+            // Ini juga mengisi data statistik
+            for (let i = 0; i < state.students.length; i++) {
+                checkOneStudent(i);
+                // Delay kecil agar tidak spam request terlalu cepat
+                await new Promise(r => setTimeout(r, 100)); 
+            }
+        }
+
+        async function checkOneStudent(idx) {
+            const s = state.students[idx];
+            // Cek RAPOR
+            const resR = await fetch(APP_URL, {method:'POST', body:JSON.stringify({
+                action:'checkStudentFile', folderId: s.folderId, type: 'RAPOR', year: state.year, semester: state.semester
+            })});
+            const rR = await resR.json();
+            if(rR.exists) {
+                const el = document.getElementById(`stat-rap-${idx}`);
+                if(el) { el.innerHTML = 'ADA'; el.className = "font-bold text-emerald-600 text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full"; }
+                state.stats.rapor++;
+                updateStatsUI();
+            }
+
+            // Cek IDENTITAS
+            const resI = await fetch(APP_URL, {method:'POST', body:JSON.stringify({
+                action:'checkStudentFile', folderId: s.folderId, type: 'IDENTITAS'
+            })});
+            const rI = await resI.json();
+            if(rI.exists) {
+                const el = document.getElementById(`stat-id-${idx}`);
+                if(el) { el.innerHTML = 'LENGKAP'; el.className = "font-bold text-secondary text-[10px] bg-purple-100 px-2 py-0.5 rounded-full"; }
+                state.stats.identitas++;
+                updateStatsUI();
+            }
+        }
+
+        function updateStatsUI() {
+            const total = state.students.length || 1;
+            
+            // Rapor Stats
+            const pctR = Math.round((state.stats.rapor / total) * 100);
+            document.getElementById('countRapor').innerText = state.stats.rapor;
+            document.getElementById('barRapor').style.width = `${pctR}%`;
+            document.getElementById('pctRapor').innerText = `${pctR}% Selesai`;
+
+            // Identitas Stats
+            const pctI = Math.round((state.stats.identitas / total) * 100);
+            document.getElementById('countIdentitas').innerText = state.stats.identitas;
+            document.getElementById('barIdentitas').style.width = `${pctI}%`;
+            document.getElementById('pctIdentitas').innerText = `${pctI}% Selesai`;
+        }
+
+        // --- UPLOAD LOGIC ---
+        function prepUpload(idx, type) {
+            const s = state.students[idx];
+            activeUpload = { 
+                idx, target: type, folderId: s.folderId, fileName: s.nama, 
+                year: state.year, semester: state.semester 
+            };
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            // UI Feedback
+            if(activeUpload.target === 'LEDGER') {
+                document.getElementById('btnLedger').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+            } else {
+                const domId = activeUpload.target === 'RAPOR' ? `stat-rap-${activeUpload.idx}` : `stat-id-${activeUpload.idx}`;
+                const el = document.getElementById(domId);
+                if(el) { el.innerHTML = 'Uploading...'; el.className = "font-bold text-blue-500 text-[10px] animate-pulse"; }
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async function() {
+                try {
+                    const payload = {
+                        action: 'upload',
+                        fileData: reader.result.split(',')[1],
+                        mimeType: file.type,
+                        ...activeUpload
+                    };
+                    const res = await fetch(APP_URL, {method:'POST', body:JSON.stringify(payload)});
+                    const r = await res.json();
+                    
+                    if(r.status === 'success') {
+                        Swal.fire({toast:true, position:'bottom-end', icon:'success', title:'Berhasil Upload', showConfirmButton:false, timer:2000});
+                        
+                        if(activeUpload.target === 'LEDGER') {
+                            checkLedger();
+                        } else {
+                            // Update Manual UI agar tidak perlu refresh full
+                            const isRap = activeUpload.target === 'RAPOR';
+                            const el = document.getElementById(isRap ? `stat-rap-${activeUpload.idx}` : `stat-id-${activeUpload.idx}`);
+                            if(el) {
+                                el.innerHTML = isRap ? 'ADA' : 'LENGKAP';
+                                el.className = isRap ? "font-bold text-emerald-600 text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full" : "font-bold text-secondary text-[10px] bg-purple-100 px-2 py-0.5 rounded-full";
+                            }
+                            // Update Count
+                            if(isRap) state.stats.rapor++; else state.stats.identitas++;
+                            updateStatsUI();
+                        }
+                    } else throw new Error(r.message);
+                } catch(e) { Swal.fire('Error', e.message, 'error'); }
+            };
+            e.target.value = '';
+        });
+
+        // --- CRUD SISWA ---
+        async function saveStudent() {
+            const nama = document.getElementById('newNama').value;
+            const nis = document.getElementById('newNis').value;
+            if(!nama || !nis) return;
+            
+            document.getElementById('modalAdd').classList.add('hidden');
+            Swal.fire({title:'Menyimpan...', didOpen:()=>Swal.showLoading()});
+            
+            await fetch(APP_URL, {method:'POST', body:JSON.stringify({action:'add', nama, nis})});
+            refreshData(); // Reload data
+            Swal.fire('Sukses', 'Data siswa ditambahkan', 'success');
+        }
+
+        function delStudent(row) {
+            Swal.fire({title:'Hapus Siswa?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Hapus'}).then(async r=>{
+                if(r.isConfirmed) {
+                    await fetch(APP_URL, {method:'POST', body:JSON.stringify({action:'delete', row})});
+                    refreshData();
+                }
+            });
+        }
+
+        function filterGrid() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('#gridContainer > div');
+            cards.forEach(c => {
+                c.style.display = c.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
